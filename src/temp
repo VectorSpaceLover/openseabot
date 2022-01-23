@@ -1,0 +1,88 @@
+require('chromedriver');
+const webdriver = require('selenium-webdriver');
+chrome = require('selenium-webdriver/chrome');
+const fs = require('fs');
+const path = require('path');
+
+const EXTENSTION_PATH = './src/metamask.crx';
+const EXTENSION_ID = 'nkbihfbeogaeaoehlefnkodbefgpgknn';
+const SECRET_RECOVERY_PHRASE  = 'blouse shrug device forget black refuse gas repeat gain leaf achieve machine';
+const NEW_PASSWORD = '19960203';
+
+options = new chrome.Options();
+// options.addArguments('headless'); // note: without dashes
+// options.addArguments('disable-gpu');
+options.addExtensions(EXTENSTION_PATH);
+options.addArguments("--start-maximized");
+const service = new chrome.ServiceBuilder(path.join(__dirname, "chromedriver.exe")).build();
+chrome.setDefaultService(service);
+const driver = 
+    new webdriver.Builder()
+    .forBrowser('chrome')
+    .withCapabilities(webdriver.Capabilities.chrome())
+    .setChromeOptions(options)
+    .build();
+
+const {By} = webdriver;
+
+const openSeaUrl = 'https://testnets.opensea.io/';
+
+async function installWallet(){
+    await driver.get(`chrome-extension://${EXTENSION_ID}/home.html#initialize/welcome`)
+    await driver.manage().setTimeouts({
+        implicit: 10000, // 10 seconds
+    });
+}
+
+async function openOpenSeaSite(url){
+    try{
+        await driver.get(url);
+        await driver.manage().setTimeouts({
+            implicit: 10000, // 10 seconds
+        });
+    }catch(error){
+        console.log("error" + error.message);
+    }
+}
+
+async function switchToOther(isOpenSea){
+    driver.getAllWindowHandles()
+    .then((availableWindows) => {
+        if(isOpenSea){
+            driver.switchTo().window(availableWindows[2]);
+        }else{
+            driver.switchTo().window(availableWindows[1]);
+        }
+    })
+    
+}
+
+async function coonnectWallet(){
+    await driver.findElement(By.xpath("//button[text()='Get Started']")).click();
+
+    await driver.findElement(By.xpath("//button[text()='Import wallet']")).click();
+
+    await driver.findElement(By.xpath("//button[text()='No Thanks']")).click();
+
+    await driver.findElement(By.xpath("//input[@placeholder='Paste Secret Recovery Phrase from clipboard']")).sendKeys(SECRET_RECOVERY_PHRASE);
+
+    await driver.findElement(By.xpath("//input[@id='password']")).sendKeys(NEW_PASSWORD);
+
+    await driver.findElement(By.xpath("//input[@id='confirm-password']")).sendKeys(NEW_PASSWORD);
+
+    await driver.findElement(By.xpath("//button[@type='submit']")).click();
+
+}
+
+async function startProject(){
+    // install metamask
+    await installWallet();
+    // open opensea
+    await openOpenSeaSite(openSeaUrl);
+    // false - switch to metamask
+    // await switchToOther(false);
+    // connect wallet to opensea
+    // await coonnectWallet();
+
+}
+startProject();
