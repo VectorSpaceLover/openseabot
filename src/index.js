@@ -49,7 +49,7 @@ async function installWallet(){
         await driver.get(`chrome-extension://${EXTENSION_ID}/home.html#initialize/welcome`);
 
         await driver.manage().setTimeouts({
-            implicit: 1000, // 10 seconds
+            implicit: 2000, // 10 seconds
         });
 
         await driver.findElement(By.xpath('//button[text()="Get Started"]')).click();
@@ -59,7 +59,7 @@ async function installWallet(){
         await driver.findElement(By.xpath('//button[text()="No Thanks"]')).click();
 
         await driver.manage().setTimeouts({
-            implicit: 1000, // 10 seconds
+            implicit: 2000, // 10 seconds
         });
 
         await driver.findElement(By.xpath('//input[@placeholder="Paste Secret Recovery Phrase from clipboard"]')).sendKeys(SECRET_RECOVERY_PHRASE);
@@ -70,13 +70,7 @@ async function installWallet(){
 
         let checkboxList = await driver.findElements(By.xpath('//div[@role="checkbox"]'))
 
-        let clickCheck = await checkboxList.map((ele, index) => {
-            if(index === 1 ){
-                ele.click();
-            }
-        });
-
-        await clickCheck;
+        await checkboxList[1].click();
 
         await driver.findElement(By.xpath('//div[@role="checkbox"]')).click();
 
@@ -102,43 +96,30 @@ async function installWallet(){
         
         let settingList = await account.findElements(By.className('account-menu__item account-menu__item--clickable'));
 
-        let clickSetting = await settingList.map((ele, index) => {
-            if(index === 4){
-                ele.click();
-            }
-        })
-
-        await clickSetting;
+        await settingList[4].click();
 
         // await driver.wait(until.elementLocated(By.xpath('//div[@class="tab-bar"]//button[@class="tab-bar__tab pointer"]')), 30000, 'Timed out after 30 seconds', 5000);
-        await sleep(1000)
+        await driver.manage().setTimeouts({
+            implicit: 1000, // 10 seconds
+        });
 
         let tabList = await driver.findElements(By.xpath('//div[@class="tab-bar"]//button[@class="tab-bar__tab pointer"]'));
-        let clickAdvanced = await tabList.map((ele, index) => {
-            if(index === 1){
-                ele.click();
-            }
-        })
 
-        await clickAdvanced;
+        await tabList[0].click();
+
+        await driver.manage().setTimeouts({
+            implicit: 1000, // 10 seconds
+        });
+        
+        let showRinkeby = await driver.findElements(By.xpath('//div[@data-testid="advanced-setting-show-testnet-conversion"]//div[@class="settings-page__content-item"]//div[@class="settings-page__content-item-col"]//div[@class="toggle-button toggle-button--off"]/div'));
+
+        await showRinkeby[2].click();
+
+        await driver.findElement(By.className('chip__right-icon')).click();
+
+        await driver.findElement(By.xpath('//span[text()="Rinkeby Test Network"]')).click();
+
         await driver.findElement(By.className('settings-page__close-button')).click();
-        
-        // await driver.findElements(By.xpath('//div[@data-testid="advanced-setting-show-testnet-conversion"]')).then((res) => {
-        //     res.map((ele, index) => {
-        //         if(index === 1){
-        //             ele.findElements(By.className('settings-page__content-item')).then((r) => {
-        //                 r.map((ele, index) => {
-        //                     if(index === 1) ele.click();
-        //                 })
-        //             })
-        //         }
-        //     })
-        // });
-        
-        // await driver.findElement(By.className('chip__right-icon')).click();
-
-        // await driver.findElement(By.xpath('//span[text()="Rinkeby Test Network"]')).click();
-
     }catch(err){
         console.log(err.message);
     }
@@ -149,9 +130,8 @@ async function openOpenSeaSite(url){
         await driver.executeScript(`window.open("${url}");`);
         // await driver.get(url);
         await driver.manage().setTimeouts({
-            implicit: 1000, // 10 seconds
+            implicit: 3000, // 10 seconds
         });
-        // await driver.findElement(By.xpath('//a[text()="Create"]')).click();
 
     }catch(e){
         console.log("error" + e.message);
@@ -159,7 +139,7 @@ async function openOpenSeaSite(url){
 }
 
 async function switchToOther(isOpenSea){
-    driver.getAllWindowHandles()
+    await driver.getAllWindowHandles()
     .then((availableWindows) => {
         if(isOpenSea){
             driver.switchTo().window(availableWindows[2]);
@@ -169,6 +149,24 @@ async function switchToOther(isOpenSea){
     })
 }
 
+async function createCollection(){
+    try{
+        await driver.manage().setTimeouts({
+            implicit: 3000, // 10 seconds
+        });
+
+        await driver.findElement(By.xpath('//a[@href="/asset/create"]')).click();
+
+        let walletList = await driver.findElement(By.xpath('//ul//li//button'));
+
+        await walletList[1].click();
+
+    }catch(error){
+        console.log(error.message);
+    }
+    
+}
+
 async function startProject(){
     // install metamask
     await installWallet();
@@ -176,6 +174,8 @@ async function startProject(){
     await openOpenSeaSite(openSeaUrl);
     // false - switch to metamask
     await switchToOther(true);
+    // create collection
+    await createCollection();
 }
 
 
