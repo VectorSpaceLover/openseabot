@@ -139,14 +139,18 @@ async function openOpenSeaSite(url){
 }
 
 async function switchToOther(isOpenSea){
-    await driver.getAllWindowHandles()
-    .then((availableWindows) => {
-        if(isOpenSea){
-            driver.switchTo().window(availableWindows[2]);
-        }else{
-            driver.switchTo().window(availableWindows[1]);
-        }
-    })
+    try{
+        await driver.getAllWindowHandles()
+        .then((availableWindows) => {
+            if(isOpenSea){
+                driver.switchTo().window(availableWindows[2]);
+            }else{
+                driver.switchTo().window(availableWindows[1]);
+            }
+        })
+    }catch(error){
+        console.log(error.message);
+    }
 }
 
 async function createCollection(){
@@ -175,7 +179,7 @@ async function startProject(){
     // false - switch to metamask
     await switchToOther(true);
     // create collection
-    await createCollection();
+    // await createCollection();
 }
 
 
