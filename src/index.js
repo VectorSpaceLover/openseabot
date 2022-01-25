@@ -49,7 +49,7 @@ async function installWallet(){
         await driver.get(`chrome-extension://${EXTENSION_ID}/home.html#initialize/welcome`);
 
         await driver.manage().setTimeouts({
-            implicit: 2000, // 10 seconds
+            implicit: 3000, // 10 seconds
         });
 
         await driver.findElement(By.xpath('//button[text()="Get Started"]')).click();
@@ -140,14 +140,20 @@ async function openOpenSeaSite(url){
 
 async function switchToOther(isOpenSea){
     try{
-        await driver.getAllWindowHandles()
-        .then((availableWindows) => {
-            if(isOpenSea){
-                driver.switchTo().window(availableWindows[2]);
-            }else{
-                driver.switchTo().window(availableWindows[1]);
-            }
-        })
+        let availableWindows = await driver.getAllWindowHandles()
+        
+        await availableWindows;
+
+        if(isOpenSea){
+            await driver.switchTo().window(availableWindows[2]);
+        }else{
+            await driver.switchTo().window(availableWindows[1]);
+        }
+
+        await driver.manage().setTimeouts({
+            implicit: 1000, // 10 seconds
+        });
+
     }catch(error){
         console.log(error.message);
     }
@@ -156,15 +162,56 @@ async function switchToOther(isOpenSea){
 async function createCollection(){
     try{
         await driver.manage().setTimeouts({
-            implicit: 3000, // 10 seconds
+            implicit: 2000, // 10 seconds
         });
 
         await driver.findElement(By.xpath('//a[@href="/asset/create"]')).click();
 
-        let walletList = await driver.findElement(By.xpath('//ul//li//button'));
+        await driver.manage().setTimeouts({
+            implicit: 2000, // 10 seconds
+        });
 
-        await walletList[1].click();
+        let breakIt = true;
+        while (true) {
+            breakIt = true;
+            try {
+                // write your code here
+                let walletList = await driver.findElements(By.xpath('//ul//li//button'));
 
+                await walletList[1].click();
+
+            } catch (e) {
+                if (e.message.indexOf("element is not attached")) {
+                    breakIt = false;
+                }
+            }
+            if (breakIt) {
+                break;
+            }
+
+        }
+
+        await driver.manage().setTimeouts({
+            implicit: 3000, // 10 seconds
+        });
+
+        await driver.findElement(By.xpath('//button[text()="Next"]')).click();
+
+        await driver.manage().setTimeouts({
+            implicit: 1000, // 10 seconds
+        });
+
+        await driver.findElement(By.xpath('//button[text()="Connect"]')).click();
+
+        await driver.manage().setTimeouts({
+            implicit: 1000, // 10 seconds
+        });
+
+        await driver.findElement(By.xpath('//button[text()="Sign"]')).click();
+
+        await driver.manage().setTimeouts({
+            implicit: 1000, // 10 seconds
+        });
     }catch(error){
         console.log(error.message);
     }
@@ -172,14 +219,19 @@ async function createCollection(){
 }
 
 async function startProject(){
-    // install metamask
-    await installWallet();
-    // open opensea
-    await openOpenSeaSite(openSeaUrl);
-    // false - switch to metamask
-    await switchToOther(true);
-    // create collection
-    // await createCollection();
+    try{
+        // install metamask
+        await installWallet();
+        // open opensea
+        await openOpenSeaSite(openSeaUrl);
+        // false - switch to metamask
+        await switchToOther(true);
+        // create collection
+        await createCollection();
+    }catch(error){
+        console.log(error.message);
+    }
+    
 }
 
 
